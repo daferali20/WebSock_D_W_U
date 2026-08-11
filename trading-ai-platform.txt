@@ -1,0 +1,43 @@
+trading-ai-platform/
+├── docker-compose.yml             # تشغيل Infrastructure (Kafka, Redis, TimescaleDB)
+├── README.md
+│
+├── services/
+│   ├── data-ingestion/            # (1) ممتص البيانات اللحظية
+│   │   ├── src/
+│   │   │   ├── databento_client.py# اتصال WebSocket بـ Databento
+│   │   │   └── kafka_producer.py  # ضخ البيانات في Kafka Topics
+│   │   ├── Requirements.txt
+│   │   └── Dockerfile
+│   │
+│   ├── liquidity-service/         # (2) تحليل عمق السوق
+│   │   ├── src/
+│   │   │   ├── kafka_consumer.py  # استهلاك البيانات
+│   │   │   ├── depth_analyzer.py  # حساب العمق والسيولة
+│   │   │   ├── redis_writer.py    # حفظ اللحظي في Redis
+│   │   │   └── timescale_writer.py# حفظ التاريخي في TimescaleDB
+│   │   └── Dockerfile
+│   │
+│   ├── ai-engine/                 # (3) محرك الذكاء الاصطناعي (كل 5 دقائق)
+│   │   ├── src/
+│   │   │   ├── scheduler.py       # مؤقت التشغيل (Cron / APScheduler)
+│   │   │   ├── timescale_reader.py# سحب آخر 200 نقطة
+│   │   │   ├── finnhub_client.py  # جلب بيانات المشاعر
+│   │   │   ├── model_inference.py # تشغيل النموذج المدرّب (.pt / .onnx)
+│   │   │   └── signal_publisher.py# نشر الإشارة الناتجة
+│   │   └── Dockerfile
+│   │
+│   └── api-gateway/               # (4) خادم التنبيهات والواجهة
+│       ├── src/
+│       │   ├── websocket_server.py# إرسال الأحداث اللحظية للتطبيق
+│       │   ├── push_service.py    # إرسال Push Notifications (Firebase/FCM)
+│       │   └── main.py            # API REST / WebSocket Gateway
+│       └── Dockerfile
+│
+└── dashboard-ui/                  # (5) واجهة المستخدم (React/Flutter/Next.js)
+    ├── src/
+    │   ├── components/
+    │   │   ├── SignalCard.jsx     # بطاقة عرض الإشارة
+    │   │   └── EventFeed.jsx      # شاشة الأحداث اللحظية
+    │   └── services/
+    │       └── websocket.js       # استقبال إشارات الـ Gateway
